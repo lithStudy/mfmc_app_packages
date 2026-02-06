@@ -1,0 +1,42 @@
+name: app_common
+description: "通用模块包 - VitalLink 和 daily-notes 共享的通用功能"
+version: 1.0.0
+publish_to: "none"
+
+environment:
+  sdk: ^3.10.3
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # 状态管理
+  flutter_riverpod: ^2.6.1
+  
+  # 网络请求
+  dio: ^5.9.0
+  
+  # 数据库
+  sqflite: ^2.4.2
+  sqflite_common_ffi: ^2.4.0
+  sqflite_common_ffi_web: ^1.1.0
+  
+  # 路径和文件
+  path: ^1.9.1
+  path_provider: ^2.1.5
+  
+  # 工具
+  uuid: ^4.5.1
+  cryptography: ^2.7.0
+  
+  # 录音
+  record: ^6.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

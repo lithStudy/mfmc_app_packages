@@ -188,7 +188,9 @@ abstract class OpenAiCompatibleAiService implements AiService {
     String base64Image;
     String imageMimeType = 'image/jpeg';
 
-    if (kIsWeb || imagePath.startsWith('data:') || !imagePath.contains('/')) {
+    if (kIsWeb ||
+        imagePath.startsWith('data:') ||
+        (!imagePath.contains('/') && !imagePath.contains('\\'))) {
       if (imagePath.startsWith('data:')) {
         final commaIndex = imagePath.indexOf(',');
         if (commaIndex != -1) {

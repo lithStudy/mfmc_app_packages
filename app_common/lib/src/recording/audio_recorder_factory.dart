@@ -3,8 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'audio_recorder.dart';
 import 'mobile_audio_recorder.dart';
 
-// Web录音器实现内联，避免条件导入问题
-class WebAudioRecorderStub implements VitalAudioRecorder {
+class _UnsupportedAudioRecorder implements VitalAudioRecorder {
+  _UnsupportedAudioRecorder(this._platformName);
+  final String _platformName;
+
   @override
   bool get isRecording => false;
 
@@ -13,7 +15,7 @@ class WebAudioRecorderStub implements VitalAudioRecorder {
 
   @override
   Future<void> startRecording() async {
-    throw RecordingException('Web端录音功能暂时不可用，请使用移动端App进行录音');
+    throw RecordingException('$_platformName暂不支持录音功能，请使用移动端App进行录音');
   }
 
   @override
@@ -31,9 +33,8 @@ class AudioRecorderFactory {
   /// 创建平台适配的录音器实例
   static VitalAudioRecorder create() {
     if (kIsWeb) {
-      return WebAudioRecorderStub();
-    } else {
-      return MobileAudioRecorder();
+      return _UnsupportedAudioRecorder('Web端');
     }
+    return MobileAudioRecorder();
   }
 }

@@ -4,17 +4,20 @@ import 'dart:typed_data';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart' as record;
 
 import '../util/app_logger.dart';
 import 'audio_recorder.dart';
 
-/// 移动端录音实现（使用record包）
+/// 移动端/桌面端录音实现（使用record包）
 class MobileAudioRecorder implements VitalAudioRecorder {
   record.AudioRecorder? _recorder;
   bool _isRecording = false;
   String? _currentPath;
+
+  static bool get _isWindows => !kIsWeb && Platform.isWindows;
 
   @override
   bool get isRecording => _isRecording;
@@ -37,6 +40,30 @@ class MobileAudioRecorder implements VitalAudioRecorder {
     }
   }
 
+  record.RecordConfig _buildConfig() {
+    if (_isWindows) {
+      // Windows 上使用 AAC 编码器，MediaFoundation 对 AAC 支持最好
+      return const record.RecordConfig(
+        encoder: record.AudioEncoder.aacLc,
+        sampleRate: 44100,
+        numChannels: 1,
+      );
+    }
+    // Android/iOS 使用 WAV 格式 (16kHz, 单声道)
+    // 百炼API对Android默认的AAC/m4a格式支持不稳定，特别是超过5秒的音频
+    return const record.RecordConfig(
+      encoder: record.AudioEncoder.wav,
+      sampleRate: 16000,
+      numChannels: 1,
+    );
+  }
+
+  String _buildFileName() {
+    final ts = DateTime.now().millisecondsSinceEpoch;
+    final ext = _isWindows ? 'm4a' : 'wav';
+    return 'recording_$ts.$ext';
+  }
+
   @override
   Future<void> startRecording() async {
     if (_isRecording) return;
@@ -48,7 +75,6 @@ class MobileAudioRecorder implements VitalAudioRecorder {
 
       await AppLogger.info('Mobile录音: 检查权限...', tag: 'AudioRecorder');
       debugPrint('Mobile录音: 检查权限...');
-      // 检查权限
       final hasPermission = await _recorder!.hasPermission();
       if (!hasPermission) {
         await AppLogger.error('Mobile录音: 没有录音权限', tag: 'AudioRecorder');
@@ -57,28 +83,23 @@ class MobileAudioRecorder implements VitalAudioRecorder {
       await AppLogger.info('Mobile录音: 权限检查通过', tag: 'AudioRecorder');
       debugPrint('Mobile录音: 权限检查通过');
 
-      // 获取临时目录路径
       final tempDir = await getTemporaryDirectory();
-      final fileName = 'recording_${DateTime.now().millisecondsSinceEpoch}.wav';
-      _currentPath = '${tempDir.path}/$fileName';
+      _currentPath = p.join(tempDir.path, _buildFileName());
       await AppLogger.info(
         'Mobile录音: 录音文件路径: $_currentPath',
         tag: 'AudioRecorder',
       );
       debugPrint('Mobile录音: 录音文件路径: $_currentPath');
 
-      await AppLogger.info('Mobile录音: 开始录音...', tag: 'AudioRecorder');
-      debugPrint('Mobile录音: 开始录音...');
-
-      // 使用WAV格式 (16kHz, 16-bit, 单声道)，解决Android端长语音无法识别的问题
-      // 百炼API对Android默认的AAC/m4a格式支持不稳定，特别是超过5秒的音频
-      final config = const record.RecordConfig(
-        encoder: record.AudioEncoder.wav,
-        sampleRate: 16000,
-        numChannels: 1,
+      final config = _buildConfig();
+      await AppLogger.info(
+        'Mobile录音: 开始录音 (encoder=${config.encoder}, sampleRate=${config.sampleRate})...',
+        tag: 'AudioRecorder',
+      );
+      debugPrint(
+        'Mobile录音: 开始录音 (encoder=${config.encoder}, sampleRate=${config.sampleRate})...',
       );
 
-      // 开始录音
       await _recorder!.start(config, path: _currentPath!);
 
       _isRecording = true;
@@ -89,7 +110,6 @@ class MobileAudioRecorder implements VitalAudioRecorder {
       debugPrint('Mobile录音: 开始录音失败: $e');
       debugPrint('Mobile录音: 堆栈跟踪: $stackTrace');
 
-      // 清理可能的临时文件
       if (_currentPath != null && File(_currentPath!).existsSync()) {
         try {
           File(_currentPath!).deleteSync();
@@ -100,7 +120,6 @@ class MobileAudioRecorder implements VitalAudioRecorder {
       }
 
       _currentPath = null;
-      // 重新抛出更用户友好的异常
       if (e.toString().contains('permission')) {
         throw RecordingException('录音权限被拒绝，请检查应用权限设置');
       } else {

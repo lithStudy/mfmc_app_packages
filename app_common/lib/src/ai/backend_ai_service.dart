@@ -336,4 +336,23 @@ class BackendAiService implements AiService {
     // TODO: 实现音频支持
     throw UnimplementedError('音频支持待实现');
   }
+
+  @override
+  Stream<String> generateTextStream({
+    required String systemPrompt,
+    required String userContent,
+    Map<String, dynamic>? options,
+  }) async* {
+    final messages = [
+      {'role': 'system', 'content': systemPrompt},
+      {'role': 'user', 'content': userContent},
+    ];
+    final response = await _adapter.chatCompletions(
+      messages: messages,
+      model: null,
+      temperature: options?['temperature'] as double? ?? 0.7,
+    );
+    final content = OpenAiAdapter.extractContent(response);
+    if (content.isNotEmpty) yield content;
+  }
 }

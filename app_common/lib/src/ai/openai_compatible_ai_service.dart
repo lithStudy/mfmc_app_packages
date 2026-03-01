@@ -438,4 +438,101 @@ abstract class OpenAiCompatibleAiService implements AiService {
     // 默认不支持音频转录，子类可以覆盖实现
     throw UnimplementedError('$serviceName音频转录功能暂未实现');
   }
+
+  @override
+  Stream<String> generateTextStream({
+    required String systemPrompt,
+    required String userContent,
+    Map<String, dynamic>? options,
+  }) async* {
+    if (backendUrl.isNotEmpty) {
+      // 后端代理暂不支持 SSE 流式，退化为一次请求后整体 yield
+      final body = {
+        'model': model,
+        'messages': [
+          {'role': 'system', 'content': systemPrompt},
+          {'role': 'user', 'content': userContent},
+        ],
+        'temperature': 0.7,
+        'max_tokens': 2000,
+      };
+      final result = await callApi(
+        '',
+        customBody: body,
+        options: options != null ? Options(extra: options) : null,
+      );
+      final content = result['content']?.toString() ?? '';
+      if (content.isNotEmpty) yield content;
+      return;
+    }
+
+    final targetUrl = endpoint;
+    final headers = {
+      'Authorization': 'Bearer $apiKey',
+      'Content-Type': 'application/json',
+    };
+    final body = {
+      'model': model,
+      'messages': [
+        {'role': 'system', 'content': systemPrompt},
+        {'role': 'user', 'content': userContent},
+      ],
+      'stream': true,
+      'temperature': 0.7,
+      'max_tokens': 2000,
+    };
+
+    final resp = await _dio.post<ResponseBody>(
+      targetUrl,
+      data: body,
+      options: Options(
+        responseType: ResponseType.stream,
+        headers: headers,
+        receiveTimeout: const Duration(seconds: 180),
+      ),
+    );
+
+    if (resp.data == null) return;
+
+    final stream = resp.data!.stream;
+    var buffer = '';
+    await for (final chunk in stream) {
+      buffer += utf8.decode(chunk);
+      final lines = buffer.split('\n');
+      buffer = lines.removeLast();
+      for (final line in lines) {
+        final trimmed = line.trim();
+        if (!trimmed.startsWith('data: ') || trimmed == 'data: [DONE]') {
+          continue;
+        }
+        final jsonStr = trimmed.substring(6);
+        try {
+          final json = jsonDecode(jsonStr) as Map<String, dynamic>?;
+          final choices = json?['choices'] as List?;
+          if (choices == null || choices.isEmpty) continue;
+          final first = choices.first as Map?;
+          final delta = first?['delta'] as Map?;
+          final content = delta?['content'] as String?;
+          if (content != null && content.isNotEmpty) yield content;
+        } catch (_) {
+          // 忽略单行解析错误
+        }
+      }
+    }
+    if (buffer.trim().isNotEmpty) {
+      final trimmed = buffer.trim();
+      if (trimmed.startsWith('data: ') && trimmed != 'data: [DONE]') {
+        try {
+          final json = jsonDecode(trimmed.substring(6)) as Map<String, dynamic>?;
+          final choices = json?['choices'] as List?;
+          if (choices != null && choices.isNotEmpty) {
+            final first = choices.first as Map?;
+            final delta = first?['delta'] as Map?;
+            final content = delta?['content'] as String?;
+            if (content != null && content.isNotEmpty) yield content;
+          }
+        } catch (_) {}
+      }
+    }
+  }
 }

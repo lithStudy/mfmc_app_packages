@@ -564,4 +564,17 @@ class GeminiAiService implements AiService {
     final content = response['content']?.toString() ?? '';
     return {'summary': content, 'raw': response};
   }
+
+  @override
+  Stream<String> generateTextStream({
+    required String systemPrompt,
+    required String userContent,
+    Map<String, dynamic>? options,
+  }) async* {
+    final combined =
+        '${systemPrompt.trim()}\n\n---\n\n用户内容：\n${userContent.trim()}';
+    final response = await generateText(prompt: combined, options: options);
+    final content = response['content']?.toString() ?? '';
+    if (content.isNotEmpty) yield content;
+  }
 }

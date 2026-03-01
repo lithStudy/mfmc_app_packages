@@ -89,6 +89,16 @@ abstract class AiService {
     required String audioPath,
     required String inputHash,
   });
+
+  /// 流式文本生成（系统提示词 + 用户内容）
+  /// [systemPrompt] 作为 system 角色的提示词
+  /// [userContent] 作为 user 角色的内容
+  /// [options] 额外参数
+  Stream<String> generateTextStream({
+    required String systemPrompt,
+    required String userContent,
+    Map<String, dynamic>? options,
+  });
 }
 
 /// AI服务提供商类型

@@ -22,15 +22,6 @@ abstract class AiService {
   /// 提取要点
   /// [prompt] 预先构建好的提示词
   Future<Map<String, dynamic>> extract({
-    required String personId,
-    required String prompt,
-    required String inputHash,
-  });
-
-  /// 生成追问问题
-  /// [prompt] 预先构建好的提示词
-  Future<Map<String, dynamic>> questions({
-    required String personId,
     required String prompt,
     required String inputHash,
   });
@@ -38,7 +29,6 @@ abstract class AiService {
   /// 生成总结
   /// [prompt] 预先构建好的提示词
   Future<Map<String, dynamic>> summary({
-    required String personId,
     required String prompt,
     required String inputHash,
   });
@@ -47,7 +37,6 @@ abstract class AiService {
   /// [prompt] 预先构建好的提示词
   /// [imagePaths] 图片文件的完整路径列表（支持多图）
   Future<Map<String, dynamic>> visionRecognize({
-    required String personId,
     required String prompt,
     required List<String> imagePaths,
     required String inputHash,
@@ -64,7 +53,6 @@ abstract class AiService {
   /// [prompt] 预先构建好的提示词
   /// [imagePath] 图片文件的完整路径
   Future<Map<String, dynamic>> examinationOcr({
-    required String personId,
     required String prompt,
     required String imagePath,
     required String inputHash,
@@ -74,7 +62,6 @@ abstract class AiService {
   /// [prompt] 预先构建好的提示词
   /// [imagePath] 图片文件的完整路径
   Future<Map<String, dynamic>> labTestOcr({
-    required String personId,
     required String prompt,
     required String imagePath,
     required String inputHash,
@@ -84,7 +71,6 @@ abstract class AiService {
   /// [prompt] 预先构建好的提示词
   /// [audioPath] 音频文件的完整路径
   Future<Map<String, dynamic>> audioTranscription({
-    required String personId,
     required String prompt,
     required String audioPath,
     required String inputHash,

@@ -40,7 +40,6 @@ class BailianAiService extends OpenAiCompatibleAiService {
   /// 使用配置的语音模型，调用百炼原生API格式
   @override
   Future<Map<String, dynamic>> audioTranscription({
-    required String personId,
     required String prompt,
     required String audioPath,
     required String inputHash,

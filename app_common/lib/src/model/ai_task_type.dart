@@ -7,9 +7,6 @@ enum AiTaskType {
   /// 结构化提取（对应提示词：extract）
   extraction('extraction', 'extract'),
 
-  /// 追问生成（对应提示词：questions）
-  questions('questions', 'questions'),
-
   /// Episode总结（对应提示词：episodeSummary）
   episodeSummary('episodeSummary', 'episodeSummary'),
 

@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
-import '../util/json_utils.dart';
 import 'ai_service.dart';
 import 'openai_adapter.dart';
 
@@ -67,7 +66,6 @@ class BackendAiService implements AiService {
 
   @override
   Future<Map<String, dynamic>> extract({
-    required String personId,
     required String prompt,
     required String inputHash,
   }) async {
@@ -79,114 +77,7 @@ class BackendAiService implements AiService {
   }
 
   @override
-  Future<Map<String, dynamic>> questions({
-    required String personId,
-    required String prompt,
-    required String inputHash,
-  }) async {
-    final messages = [
-      {'role': 'user', 'content': prompt},
-    ];
-
-    final response = await _callChat(messages: messages);
-
-    // 解析AI返回的JSON字符串数组或对象数组（使用安全解析处理markdown代码块等情况）
-    final content = response['content']?.toString() ?? '';
-    final json = parseJsonSafely(content);
-    if (json != null) {
-      if (json is List) {
-        // 如果是数组，转换为对象数组格式
-        final questions = json.map((item) {
-          if (item is String) {
-            // 字符串数组：转换为带空选项的对象（UI会显示文本输入框）
-            return {'text': item, 'options': []};
-          } else if (item is Map) {
-            // 已经是对象格式，确保有text、options和isMultiple字段
-            final question = Map<String, dynamic>.from(item);
-            if (!question.containsKey('text')) {
-              question['text'] = question['question'] ?? item.toString();
-            }
-            if (!question.containsKey('options')) {
-              question['options'] = [];
-            }
-            // 保留isMultiple字段，如果没有则默认为false（单选）
-            if (!question.containsKey('isMultiple') &&
-                !question.containsKey('is_multiple')) {
-              question['isMultiple'] = false;
-            } else if (question.containsKey('is_multiple') &&
-                !question.containsKey('isMultiple')) {
-              question['isMultiple'] = question['is_multiple'];
-            }
-            return question;
-          } else {
-            return {'text': item.toString(), 'options': []};
-          }
-        }).toList();
-        return {'questions': questions, 'raw': response};
-      } else if (json is Map && json['questions'] is List) {
-        // 确保questions数组中的每个元素都有正确的格式
-        final questions = (json['questions'] as List).map((item) {
-          if (item is String) {
-            return {'text': item, 'options': []};
-          } else if (item is Map) {
-            final question = Map<String, dynamic>.from(item);
-            if (!question.containsKey('text')) {
-              question['text'] = question['question'] ?? item.toString();
-            }
-            if (!question.containsKey('options')) {
-              question['options'] = [];
-            }
-            // 保留isMultiple字段，如果没有则默认为false（单选）
-            if (!question.containsKey('isMultiple') &&
-                !question.containsKey('is_multiple')) {
-              question['isMultiple'] = false;
-            } else if (question.containsKey('is_multiple') &&
-                !question.containsKey('isMultiple')) {
-              question['isMultiple'] = question['is_multiple'];
-            }
-            return question;
-          } else {
-            return {'text': item.toString(), 'options': []};
-          }
-        }).toList();
-        return {'questions': questions, 'raw': response};
-      } else if (json is Map && json['items'] is List) {
-        // 处理items字段
-        final questions = (json['items'] as List).map((item) {
-          if (item is String) {
-            return {'text': item, 'options': []};
-          } else if (item is Map) {
-            final question = Map<String, dynamic>.from(item);
-            if (!question.containsKey('text')) {
-              question['text'] = question['question'] ?? item.toString();
-            }
-            if (!question.containsKey('options')) {
-              question['options'] = [];
-            }
-            // 保留isMultiple字段，如果没有则默认为false（单选）
-            if (!question.containsKey('isMultiple') &&
-                !question.containsKey('is_multiple')) {
-              question['isMultiple'] = false;
-            } else if (question.containsKey('is_multiple') &&
-                !question.containsKey('isMultiple')) {
-              question['isMultiple'] = question['is_multiple'];
-            }
-            return question;
-          } else {
-            return {'text': item.toString(), 'options': []};
-          }
-        }).toList();
-        return {'questions': questions, 'raw': response};
-      }
-    }
-
-    // 如果解析失败或格式不匹配，返回原始响应（parseCandidates会处理）
-    return response;
-  }
-
-  @override
   Future<Map<String, dynamic>> summary({
-    required String personId,
     required String prompt,
     required String inputHash,
   }) async {
@@ -199,7 +90,6 @@ class BackendAiService implements AiService {
 
   @override
   Future<Map<String, dynamic>> visionRecognize({
-    required String personId,
     required String prompt,
     required List<String> imagePaths,
     required String inputHash,
@@ -306,7 +196,6 @@ class BackendAiService implements AiService {
 
   @override
   Future<Map<String, dynamic>> examinationOcr({
-    required String personId,
     required String prompt,
     required String imagePath,
     required String inputHash,
@@ -317,7 +206,6 @@ class BackendAiService implements AiService {
 
   @override
   Future<Map<String, dynamic>> labTestOcr({
-    required String personId,
     required String prompt,
     required String imagePath,
     required String inputHash,
@@ -328,7 +216,6 @@ class BackendAiService implements AiService {
 
   @override
   Future<Map<String, dynamic>> audioTranscription({
-    required String personId,
     required String prompt,
     required String audioPath,
     required String inputHash,

@@ -10,7 +10,6 @@ export 'src/config/app_config_loader.dart';
 export 'src/model/ai_task_type.dart';
 export 'src/model/prompt_config.dart';
 export 'src/model/environment_data.dart';
-export 'src/model/symptom_question_group.dart';
 
 // AI 服务
 export 'src/ai/ai_service.dart';
@@ -37,12 +36,6 @@ export 'src/recording/mobile_audio_recorder.dart';
 // HTTP 服务
 export 'src/http/http_client_factory.dart';
 export 'src/http/client_id_interceptor.dart';
-
-// 导出（Markdown 导出）
-export 'src/export/export_models.dart';
-export 'src/export/export_data_source.dart';
-export 'src/export/export_file_ops.dart';
-export 'src/export/markdown_export_runner.dart';
 
 // 工具类
 export 'src/util/client_id_service.dart';

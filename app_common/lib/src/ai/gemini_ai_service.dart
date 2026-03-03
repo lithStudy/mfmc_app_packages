@@ -202,7 +202,6 @@ class GeminiAiService implements AiService {
 
   @override
   Future<Map<String, dynamic>> extract({
-    required String personId,
     required String prompt,
     required String inputHash,
   }) async {
@@ -211,18 +210,7 @@ class GeminiAiService implements AiService {
   }
 
   @override
-  Future<Map<String, dynamic>> questions({
-    required String personId,
-    required String prompt,
-    required String inputHash,
-  }) async {
-    final response = await _callGemini(prompt);
-    return _parseQuestionsResponse(response);
-  }
-
-  @override
   Future<Map<String, dynamic>> summary({
-    required String personId,
     required String prompt,
     required String inputHash,
   }) async {
@@ -241,7 +229,6 @@ class GeminiAiService implements AiService {
 
   @override
   Future<Map<String, dynamic>> visionRecognize({
-    required String personId,
     required String prompt,
     required List<String> imagePaths,
     required String inputHash,
@@ -365,7 +352,6 @@ class GeminiAiService implements AiService {
 
   @override
   Future<Map<String, dynamic>> examinationOcr({
-    required String personId,
     required String prompt,
     required String imagePath,
     required String inputHash,
@@ -379,7 +365,6 @@ class GeminiAiService implements AiService {
 
   @override
   Future<Map<String, dynamic>> labTestOcr({
-    required String personId,
     required String prompt,
     required String imagePath,
     required String inputHash,
@@ -393,7 +378,6 @@ class GeminiAiService implements AiService {
 
   @override
   Future<Map<String, dynamic>> audioTranscription({
-    required String personId,
     required String prompt,
     required String audioPath,
     required String inputHash,
@@ -533,26 +517,6 @@ class GeminiAiService implements AiService {
       return json;
     }
     return {'text': content, 'raw': response};
-  }
-
-  /// 解析问题响应（使用安全解析处理markdown代码块等情况）
-  Map<String, dynamic> _parseQuestionsResponse(Map<String, dynamic> response) {
-    final content = response['content']?.toString() ?? '';
-    final json = parseJsonSafely(content);
-    if (json is List) {
-      return {'questions': json};
-    } else if (json is Map && json['questions'] is List) {
-      return json as Map<String, dynamic>;
-    } else if (json is Map && json['items'] is List) {
-      return {'questions': json['items']};
-    }
-    return {
-      'questions': [
-        {'text': '能补充一下症状持续了多久吗？'},
-        {'text': '还有其他不适症状吗？'},
-        {'text': '症状的严重程度如何？'},
-      ],
-    };
   }
 
   Map<String, dynamic> _parseTitleResponse(Map<String, dynamic> response) {

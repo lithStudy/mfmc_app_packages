@@ -40,7 +40,6 @@ class DoubaoAiService extends OpenAiCompatibleAiService {
   /// 接口使用 multipart/form-data 格式上传音频文件
   @override
   Future<Map<String, dynamic>> audioTranscription({
-    required String personId,
     required String prompt,
     required String audioPath,
     required String inputHash,

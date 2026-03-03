@@ -248,27 +248,6 @@ abstract class OpenAiCompatibleAiService implements AiService {
     return {'text': content, 'raw': response};
   }
 
-  /// 解析问题响应（使用安全解析处理markdown代码块等情况）
-  @protected
-  Map<String, dynamic> parseQuestionsResponse(Map<String, dynamic> response) {
-    final content = response['content']?.toString() ?? '';
-    final json = parseJsonSafely(content);
-    if (json is List) {
-      return {'questions': json};
-    } else if (json is Map && json['questions'] is List) {
-      return json as Map<String, dynamic>;
-    } else if (json is Map && json['items'] is List) {
-      return {'questions': json['items']};
-    }
-    return {
-      'questions': [
-        {'text': '能补充一下症状持续了多久吗？'},
-        {'text': '还有其他不适症状吗？'},
-        {'text': '症状的严重程度如何？'},
-      ],
-    };
-  }
-
   /// 解析标题响应
   @protected
   Map<String, dynamic> parseTitleResponse(Map<String, dynamic> response) {
@@ -344,7 +323,6 @@ abstract class OpenAiCompatibleAiService implements AiService {
 
   @override
   Future<Map<String, dynamic>> extract({
-    required String personId,
     required String prompt,
     required String inputHash,
   }) async {
@@ -353,18 +331,7 @@ abstract class OpenAiCompatibleAiService implements AiService {
   }
 
   @override
-  Future<Map<String, dynamic>> questions({
-    required String personId,
-    required String prompt,
-    required String inputHash,
-  }) async {
-    final response = await callApi(prompt);
-    return parseQuestionsResponse(response);
-  }
-
-  @override
   Future<Map<String, dynamic>> summary({
-    required String personId,
     required String prompt,
     required String inputHash,
   }) async {
@@ -383,7 +350,6 @@ abstract class OpenAiCompatibleAiService implements AiService {
 
   @override
   Future<Map<String, dynamic>> visionRecognize({
-    required String personId,
     required String prompt,
     required List<String> imagePaths,
     required String inputHash,
@@ -402,7 +368,6 @@ abstract class OpenAiCompatibleAiService implements AiService {
 
   @override
   Future<Map<String, dynamic>> examinationOcr({
-    required String personId,
     required String prompt,
     required String imagePath,
     required String inputHash,
@@ -416,7 +381,6 @@ abstract class OpenAiCompatibleAiService implements AiService {
 
   @override
   Future<Map<String, dynamic>> labTestOcr({
-    required String personId,
     required String prompt,
     required String imagePath,
     required String inputHash,
@@ -430,7 +394,6 @@ abstract class OpenAiCompatibleAiService implements AiService {
 
   @override
   Future<Map<String, dynamic>> audioTranscription({
-    required String personId,
     required String prompt,
     required String audioPath,
     required String inputHash,
